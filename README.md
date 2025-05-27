@@ -309,73 +309,62 @@ delete_doctor(115)
 # Результат удаления данных
 ![image](https://github.com/user-attachments/assets/c2aaa5d8-e178-4fc9-9055-1369299b16b8)
 
-## Задание 5. Агрегация зарплаты врачей по специальностям.
-Это задание выполняется при помощи библиотеки pandas, загрузим ее
+## Задание 5. Постройте график для анализа количества врачей по специальности.
+Это задание выполняется при помощи библиотек pandas и matplotlib , загрузим их
 
 ````
 %pip install pandas
 ````
-Теперь перейдем к самому заданию
+
+````
+%pip install matplotlib
+````
+Выполним запрос
 ````
 import psycopg2
 import pandas as pd
+import matplotlib.pyplot as plt
 
-def get_connection(database_name):
-    connection = psycopg2.connect(user="postgres",
-                                  password="1",
-                                  host="localhost",
-                                  port="5432",
-                                  database=database_name)
-    return connection
+conn = psycopg2.connect(
+    host="localhost",
+    database="medical_db",
+    user="postgres",
+    password="1",
+    port="5432"
+)
 
-def close_connection(connection):
-    if connection:
-        connection.close()
-        print("Соединение с PostgreSQL закрыто")
+query = """
+SELECT speciality, COUNT(*) AS count
+FROM Doctor
+GROUP BY speciality;
+"""
 
-def aggregate_salary_by_speciality():
-    try:
-        database_name = 'medical_db'
-        connection = get_connection(database_name)
-        cursor = connection.cursor()
+df = pd.read_sql(query, conn)
 
-        # Пишем SQL запрос для получения данных о врачах, содержащие специальности и зарплату
-        select_query = """
-        SELECT Speciality, Salary 
-        FROM Doctor
-        """
-        cursor.execute(select_query)
+conn.close()
 
-        # Загружаем наши результаты в DataFrame
-        records = cursor.fetchall()
-        df = pd.DataFrame(records, columns=['Speciality', 'Salary'])
+df_sorted = df.sort_values(by='count', ascending=False)
 
-        # Теперь группируем данные по специальности и суммируем зарплату в каждой специальности
-        salary_aggregation = df.groupby('Speciality').agg({'Salary': 'sum'}).reset_index()
-
-        # Выводим результат
-        print("\nАгрегация зарплаты врачей по специальностям:\n")
-        print(salary_aggregation)
-
-      
-        close_connection(connection)
-    except (Exception, psycopg2.Error) as error:
-        print("Ошибка при получении данных:", error)
-
-
-print("Упражнение. Агрегация зарплаты врачей по специальностям\n")
-aggregate_salary_by_speciality()
+plt.figure(figsize=(12, 6))
+plt.bar(df_sorted['speciality'], df_sorted['count'], color='pink')
+plt.title('Количество врачей по специальностям')
+plt.xlabel('Специальность')
+plt.ylabel('Количество врачей')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.show()
 ````
-# Результат выполнения
-![image](https://github.com/user-attachments/assets/a36c6f77-f180-4476-86d7-30a2f21d516c)
+# Результат построения графика
+![image](https://github.com/user-attachments/assets/ae49933c-9bde-43ca-bdf8-f003f0151b3b)
 
 
 # Выводы
 В результате выполнения практической работы были успешно освоены методы импорта и экспорта данных в базу данных SQL, а также получены навыки работы с внешними источниками данных. Эти знания и умения являются фундаментальными для работы с базами данных, что значительно расширяет возможности для решения практических задач.
-
+Все индивидуальные задания успешно выполнены
 ## Структура репозитория:
 - `erd_diagram.png` — ERD диаграмма схемы базы данных.
-- `create_db_and_tables.sql` — SQL скрипт для создания базы данных и таблиц.
+- `DAMDINOVA_SQL.sql` — SQL скрипт для создания базы данных и таблиц.
 - `Damdinova_Kristina_Takhirovna` — Jupyter Notebook с выполнением всех заданий.
 
 ## Как запустить:
