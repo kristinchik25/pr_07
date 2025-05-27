@@ -310,7 +310,65 @@ delete_doctor(115)
 ![image](https://github.com/user-attachments/assets/c2aaa5d8-e178-4fc9-9055-1369299b16b8)
 
 ## Задание 5. Постройте график для анализа количества врачей по специальности.
-К сожалению, это задание "со звездочкой" мне не удалось выполнить.
+Это задание выполняется при помощи библиотеки pandas, загрузим ее
+
+````
+%pip install pandas
+````
+Теперь перейдем к самому заданию
+````
+import psycopg2
+import pandas as pd
+
+def get_connection(database_name):
+    connection = psycopg2.connect(user="postgres",
+                                  password="1",
+                                  host="localhost",
+                                  port="5432",
+                                  database=database_name)
+    return connection
+
+def close_connection(connection):
+    if connection:
+        connection.close()
+        print("Соединение с PostgreSQL закрыто")
+
+def aggregate_salary_by_speciality():
+    try:
+        database_name = 'medical_db'
+        connection = get_connection(database_name)
+        cursor = connection.cursor()
+
+        # Пишем SQL запрос для получения данных о врачах, содержащие специальности и зарплату
+        select_query = """
+        SELECT Speciality, Salary 
+        FROM Doctor
+        """
+        cursor.execute(select_query)
+
+        # Загружаем наши результаты в DataFrame
+        records = cursor.fetchall()
+        df = pd.DataFrame(records, columns=['Speciality', 'Salary'])
+
+        # Теперь группируем данные по специальности и суммируем зарплату в каждой специальности
+        salary_aggregation = df.groupby('Speciality').agg({'Salary': 'sum'}).reset_index()
+
+        # Выводим результат
+        print("\nАгрегация зарплаты врачей по специальностям:\n")
+        print(salary_aggregation)
+
+      
+        close_connection(connection)
+    except (Exception, psycopg2.Error) as error:
+        print("Ошибка при получении данных:", error)
+
+
+print("Упражнение. Агрегация зарплаты врачей по специальностям\n")
+aggregate_salary_by_speciality()
+````
+# Результат выполнения
+![image](https://github.com/user-attachments/assets/a36c6f77-f180-4476-86d7-30a2f21d516c)
+
 
 # Выводы
 В результате выполнения практической работы были успешно освоены методы импорта и экспорта данных в базу данных SQL, а также получены навыки работы с внешними источниками данных. Эти знания и умения являются фундаментальными для работы с базами данных, что значительно расширяет возможности для решения практических задач.
