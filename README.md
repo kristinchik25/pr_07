@@ -325,6 +325,42 @@ import psycopg2
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# Подключение к базе данных
+conn = psycopg2.connect(
+    host="localhost",
+    database="medical_db",
+    user="postgres",
+    password="1",
+    port="5432"
+)
+# SQL-запрос
+query = """
+SELECT speciality, COUNT(*) AS count
+FROM Doctor
+GROUP BY speciality;
+"""
+df = pd.read_sql(query, conn)
+conn.close()
+df_sorted = df.sort_values(by='count', ascending=False).reset_index(drop=True)
+plt.figure(figsize=(12, 6))
+plt.plot(df_sorted['speciality'], df_sorted['count'], 
+         marker='o', linestyle='-', color='teal', markersize=8)
+plt.title('Количество врачей по специальностям')
+plt.xlabel('Специальность')
+plt.ylabel('Количество врачей')
+plt.xticks(rotation=45, ha='right')  
+plt.tight_layout()
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+````
+![image](https://github.com/user-attachments/assets/5ea80969-283a-40cf-9124-9e003ec709ef)
+
+Альтернативный, на мой взгляд, более наглядный вариант
+````
+import psycopg2
+import pandas as pd
+import matplotlib.pyplot as plt
+
 conn = psycopg2.connect(
     host="localhost",
     database="medical_db",
@@ -355,7 +391,7 @@ plt.tight_layout()
 plt.grid(axis='y', linestyle='--', alpha=0.7)
 plt.show()
 ````
-# Результат построения графика
+
 ![image](https://github.com/user-attachments/assets/ae49933c-9bde-43ca-bdf8-f003f0151b3b)
 
 
